@@ -13,6 +13,14 @@ services:
       - "7077:7077"
     networks:
       - spark-net
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   spark-worker:
     image: bitnami/spark:3.5.3
@@ -20,12 +28,22 @@ services:
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2G
     depends_on:
       - spark-master
     ports:
       - "8081:8081"
     networks:
       - spark-net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.00'
+          memory: 2G
+        reservations:
+          cpus: '1.00'
+          memory: 1G
 
   client:
     image: bitnami/spark:3.5.3
@@ -38,6 +56,14 @@ services:
       - .:/app
     networks:
       - spark-net
+    environment:
+      - SPARK_DRIVER_MEMORY=1G
+      - SPARK_EXECUTOR_MEMORY=1G
+    deploy:
+      resources:
+        limits:
+          cpus: '1.00'
+          memory: 1G
 
 networks:
   spark-net:
