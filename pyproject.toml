@@ -1,0 +1,20 @@
+[project]
+name = "parallel-distributed-bigdata-processing"
+version = "0.1.0"
+description = "PySpark client-mode Fibonacci app"
+authors = [
+    {name = "timermakov",email = "ts.ermakov@yandex.ru"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pytest (>=8.4.2,<9.0.0)",
+    "pyspark (>=4.0.1,<5.0.0)"
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
