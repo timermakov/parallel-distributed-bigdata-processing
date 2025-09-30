@@ -26,7 +26,7 @@ poetry run pytest -v
 Локальный запуск через spark-submit (client mode):
 - На локальной машине без Docker (Spark master = local[*]):
 ```
-python -m pip show pyspark >NUL 2>&1
+python -m pip show pyspark
 spark-submit --master local[*] --deploy-mode client src/main.py --n 10
 ```
 - Подключаясь к мастер-ноде из Docker Compose:
