@@ -3,7 +3,7 @@ import os
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
-from src.lab1.fibonacci import fib_fast_doubling
+from lab1.fibonacci import fib_fast_doubling
 
 
 @pytest.mark.parametrize("n, expected", [
