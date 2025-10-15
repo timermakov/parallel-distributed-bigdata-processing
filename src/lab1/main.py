@@ -1,7 +1,7 @@
 import argparse
 from pyspark.sql import SparkSession
 from config.config import create_spark_session
-from src.lab1.fibonacci import fib_fast_doubling
+from lab1.fibonacci import fib_fast_doubling
 
 
 def main() -> None:

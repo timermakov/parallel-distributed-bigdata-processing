@@ -1,13 +1,8 @@
 services:
   spark-master:
-    image: bitnami/spark:3.5.3
+    image: apache/spark:3.5.3-python3
     container_name: spark-master
-    environment:
-      - SPARK_MODE=master
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
+    command: bin/spark-class org.apache.spark.deploy.master.Master
     ports:
       - "8080:8080"
       - "7077:7077"
@@ -23,15 +18,14 @@ services:
           memory: 256M
 
   spark-worker:
-    image: bitnami/spark:3.5.3
+    image: apache/spark:3.5.3-python3
     container_name: spark-worker
-    environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_CORES=2
-      - SPARK_WORKER_MEMORY=2G
+    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
     depends_on:
       - spark-master
+    environment:
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2G
     ports:
       - "8081:8081"
     networks:
@@ -46,7 +40,7 @@ services:
           memory: 1G
 
   client:
-    image: bitnami/spark:3.5.3
+    image: apache/spark:3.5.3-python3
     container_name: spark-client
     depends_on:
       - spark-master
@@ -59,6 +53,10 @@ services:
     environment:
       - SPARK_DRIVER_MEMORY=1G
       - SPARK_EXECUTOR_MEMORY=1G
+      - PYTHONPATH=/app:/tmp/pip_packages/lib/python3.8/site-packages
+      - KAGGLE_CONFIG_DIR=/tmp/kaggle_home
+      - HOME=/tmp
+    entrypoint: ["/bin/bash", "/app/docker-entrypoint.sh"]
     deploy:
       resources:
         limits:

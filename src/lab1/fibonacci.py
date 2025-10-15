@@ -3,6 +3,8 @@
 # F(2k+1) = F(k+1)^2 + F(k)^2
 # Source: https://km.mmf.bsu.by/courses/2021/vp2/fibonacci.pdf
 
+from typing import Tuple
+
 def fib_fast_doubling(n: int) -> int:
     """
     Calculate nth Fibonacci number using fast doubling algorithm.
@@ -22,7 +24,7 @@ def fib_fast_doubling(n: int) -> int:
     if n < 0:
         raise ValueError("N must be non-negative")
 
-    def _fd(k: int) -> tuple[int, int]:
+    def _fd(k: int) -> 'Tuple[int, int]':
         if k == 0:
             return 0, 1
         a, b = _fd(k >> 1)
