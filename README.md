@@ -188,29 +188,30 @@ python -m lab3.main --input data/AllCombined.txt --top 10 --min-length 4 --maste
 python -m lab3.main --output results/lab3/top_tf_words --format csv
 ```
 
-### Запуск через Docker Compose
+### Запуск c Docker Compose
 
-**1. Поднять Spark кластер**
+**1. Поднять Spark**
 ```bash
 docker compose up -d spark-master spark-worker
 ```
 
-**2. Выполнить задачу (Linux/Mac)**
+**2. Выполнить задачу**
+
+**Linux/Mac**
 ```bash
 docker compose run --rm client spark-submit \
   --master spark://spark-master:7077 --deploy-mode client \
   src/lab3/main.py --input /app/data/AllCombined.txt --top 10 --min-length 4 \
   --output /app/results/lab3/top_tf_words --format csv
 ```
-
-**2. Выполнить задачу (Windows PowerShell)**
+**Windows PowerShell**
 ```powershell
 docker compose run --rm client spark-submit --master spark://spark-master:7077 --deploy-mode client `
   src/lab3/main.py --input /app/data/AllCombined.txt --top 10 --min-length 4 `
   --output /app/results/lab3/top_tf_words --format csv
 ```
 
-**3. Остановить кластер**
+**3. Остановить**
 ```bash
 docker compose down
 ```

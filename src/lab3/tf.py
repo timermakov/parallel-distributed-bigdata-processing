@@ -29,8 +29,6 @@ RESULT_SCHEMA = StructType(
 
 
 def tokenize(line: str) -> Iterable[str]:
-    """Extract normalized tokens from a line of text."""
-
     return WORD_PATTERN.findall(line.lower())
 
 
@@ -41,7 +39,6 @@ def compute_top_term_frequencies(
     min_word_length: int = 4,
     top_n: int = 10,
 ) -> List[WordTF]:
-    """Compute the top-N term frequencies for the provided text file."""
 
     if top_n <= 0:
         return []
@@ -69,20 +66,23 @@ def compute_top_term_frequencies(
         words.unpersist()
         return []
 
-    top_records = word_counts.map(
-        lambda pair: (pair[0], pair[1], pair[1] / total_terms)
-    ).takeOrdered(
-        top_n, key=lambda record: (-record[2], record[0])
+    def build_word_tf(item: tuple[str, int]) -> WordTF:
+        word, count = item
+        tf_value = count / total_terms
+        return WordTF(word=word, count=int(count), tf=float(tf_value))
+
+    top_records = word_counts.map(build_word_tf).takeOrdered(
+        top_n, key=lambda record: (-record.tf, record.word)
     )
 
     word_counts.unpersist()
     words.unpersist()
 
-    return [WordTF(word=word, count=int(count), tf=float(tf_value)) for word, count, tf_value in top_records]
+    return top_records
 
 
 def to_dataframe(spark: SparkSession, records: List[WordTF]) -> DataFrame:
-    """Convert a list of ``WordTF`` records to a Spark DataFrame."""
+    # Convert a list of WordTF records to DataFrame
 
     if not records:
         return spark.createDataFrame([], schema=RESULT_SCHEMA)
