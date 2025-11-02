@@ -1,6 +1,6 @@
 # Docker Setup Update
 
-## Running Lab 2 with Docker Compose
+## Running Lab 2
 
 ### Setup Instructions
 
@@ -42,6 +42,23 @@
    ```
 
 4. Stop the cluster when finished:
+   ```powershell
+   docker compose down
+   ```
+
+## Running Lab 3
+
+1. Ensure the Spark cluster is running:
+   ```powershell
+   docker compose up -d spark-master spark-worker
+   ```
+
+2. Launch the TF analysis job from the client container (saves results to `/app/results/lab3`):
+   ```powershell
+   docker compose run --rm client spark-submit --master spark://spark-master:7077 --deploy-mode client src/lab3/main.py --input /app/data/AllCombined.txt --top 10 --min-length 4 --output /app/results/lab3/top_tf_words --format csv
+   ```
+
+3. Stop the cluster when finished:
    ```powershell
    docker compose down
    ```

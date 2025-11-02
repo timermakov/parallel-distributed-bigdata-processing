@@ -2,12 +2,16 @@ services:
   spark-master:
     image: apache/spark:3.5.3-python3
     container_name: spark-master
-    command: bin/spark-class org.apache.spark.deploy.master.Master
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
     ports:
       - "8080:8080"
       - "7077:7077"
     networks:
       - spark-net
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app
     deploy:
       resources:
         limits:
@@ -20,16 +24,19 @@ services:
   spark-worker:
     image: apache/spark:3.5.3-python3
     container_name: spark-worker
-    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    command: /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
     depends_on:
       - spark-master
     environment:
       - SPARK_WORKER_CORES=2
       - SPARK_WORKER_MEMORY=2G
+      - PYTHONPATH=/app
     ports:
       - "8081:8081"
     networks:
       - spark-net
+    volumes:
+      - .:/app
     deploy:
       resources:
         limits:

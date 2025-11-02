@@ -161,6 +161,63 @@ docker compose down
 
 ---
 
+## Lab #3: Term Frequency Analysis with PySpark
+
+Подсчёт топ-10 слов с максимальными значениями TF (term frequency) для объединённого текста.
+
+### Структура
+- `src/lab3/tf.py` — функции токенизации и расчёта TF
+- `src/lab3/main.py` — CLI для запуска расчётов
+- `tests/lab3/test_tf.py` — модульные тесты
+
+### Запуск
+
+```
+python -m lab3.main --input data/AllCombined.txt --top 10 --min-length 4 --master local[*]
+```
+
+Опции:
+- `--top` — количество слов в выдаче (по умолчанию 10)
+- `--min-length` — минимальная длина учитываемых слов (по умолчанию 4)
+- `--output` — путь к директории для сохранения результатов (CSV или Parquet, см. `--format`)
+- `--format` — формат сохранения (`csv` или `parquet`, по умолчанию `csv`)
+
+Пример сохранения:
+
+```
+python -m lab3.main --output results/lab3/top_tf_words --format csv
+```
+
+### Запуск c Docker Compose
+
+**1. Поднять Spark**
+```bash
+docker compose up -d spark-master spark-worker
+```
+
+**2. Выполнить задачу**
+
+**Linux/Mac**
+```bash
+docker compose run --rm client spark-submit \
+  --master spark://spark-master:7077 --deploy-mode client \
+  src/lab3/main.py --input /app/data/AllCombined.txt --top 10 --min-length 4 \
+  --output /app/results/lab3/top_tf_words --format csv
+```
+**Windows PowerShell**
+```powershell
+docker compose run --rm client spark-submit --master spark://spark-master:7077 --deploy-mode client `
+  src/lab3/main.py --input /app/data/AllCombined.txt --top 10 --min-length 4 `
+  --output /app/results/lab3/top_tf_words --format csv
+```
+
+**3. Остановить**
+```bash
+docker compose down
+```
+
+---
+
 ## Общая структура проекта
 ```
 .
@@ -169,15 +226,19 @@ docker compose down
 ├── src/
 │   ├── lab1/                  # Lab 1: Fibonacci
 │   │   ├── fibonacci.py       # Алгоритм fast doubling
-│   │   └── main.py            # CLI для Lab 1
+│   └   └── main.py            # CLI для Lab 1
 │   └── lab2/                  # Lab 2: E-Commerce Analytics
-│       ├── data_loader.py     # Загрузка и обработка данных
-│       ├── EDA.py             # Exploratory Data Analysis
-│       ├── analytics.py       # Бизнес-аналитика
-│       └── main.py            # CLI для Lab 2
+│   │   ├── data_loader.py     # Загрузка и обработка данных
+│   │   ├── EDA.py             # Exploratory Data Analysis
+│   │   ├── analytics.py       # Бизнес-аналитика
+│   │   └── main.py            # CLI для Lab 2
+│   └── lab3/                  # Lab 2: E-Commerce Analytics
+│   │   ├── tf.py              # Подсчёт частоты встречаемых слов
+│   │   └── main.py            # CLI для Lab 3
 ├── tests/
 │   ├── lab1/                  # Тесты Lab 1
-│   └── lab2/                  # Тесты Lab 2
+│   ├── lab2/                  # Тесты Lab 2
+│   └── lab3/                  # Тесты Lab 3
 ├── docker-compose.yml         # Spark кластер (master + worker + client)
 ├── pyproject.toml             # Зависимости проекта
 └── README.md                  # Документация
