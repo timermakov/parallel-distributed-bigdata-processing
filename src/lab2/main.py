@@ -157,10 +157,10 @@ Examples:
         elif args.task == "all":
             run_all(spark, args.data_path, args.top_n, args.output_dir)
         
-        print("\n✓ Task completed successfully!")
+        print("\nTask completed successfully!")
         
     except Exception as e:
-        print(f"\n✗ Error: {e}", file=sys.stderr)
+        print(f"\nError: {e}", file=sys.stderr)
         raise
     
     finally:

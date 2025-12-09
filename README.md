@@ -218,6 +218,139 @@ docker compose down
 
 ---
 
+## Lab #4: NBA Player Efficiency Analytics with PySpark
+
+Анализ эффективности баскетбольных игроков NBA и их соотношения цена/эффективность с использованием PySpark.
+
+### Структура
+- `src/lab4/data_loader.py` — загрузка данных из CSV файлов (players, salaries, season stats)
+- `src/lab4/processor.py` — расчёт эффективности и cost per efficiency, сохранение в партиционированный Parquet
+- `src/lab4/analytics.py` — поиск топ-5 наиболее выгодных игроков за каждый сезон
+- `src/lab4/main.py` — точка входа с CLI
+- `tests/lab4/` — тесты
+
+### Dataset
+Необходимо вручную разместить три CSV файла в директории `data/lab4/`:
+- **players.csv**: данные по баскетбольным игрокам (id и полное имя)
+- **salaries_1985to2018.csv**: стоимость игрока за конкретный сезон (1985-2018)
+- **Seasons_Stats.csv**: статистика игрока в конкретном сезоне (PTS, TRB, AST и др.)
+
+### Задачи
+1. Расчёт эффективности игрока: `Efficiency = PTS + TRB + AST`
+   - PTS — очки, набранные игроком
+   - TRB — количество подборов
+   - AST — количество передач (assists)
+
+2. Расчёт стоимости за единицу эффективности: `Cost per Efficiency = Salary / Efficiency`
+
+3. Сохранение результата в Parquet с партиционированием по годам (partition discovery)
+
+4. Вывод топ-5 наиболее выгодных игроков (с наименьшим Cost per Efficiency) за каждый год
+
+### Особенности реализации
+- Сезон NBA указывается в формате "1990-91" — используется год окончания (1991)
+- Фильтрация записей с нулевой или отрицательной эффективностью
+- Использование Window функций для ранжирования игроков по сезонам
+
+### Локальный запуск
+
+```bash
+cd src/lab4
+```
+
+**1. Обработка данных (расчёт эффективности и сохранение в Parquet)**
+```bash
+python -m main --task process \
+  --players ../../data/lab4/players.csv \
+  --salaries ../../data/lab4/salaries_1985to2018.csv \
+  --seasons-stats ../../data/lab4/Seasons_Stats.csv \
+  --processed-path ../../data/lab4/processed.parquet
+```
+
+**2. Запуск аналитики (топ-5 игроков за каждый сезон)**
+```bash
+python -m main --task analytics \
+  --processed-path ../../data/lab4/processed.parquet \
+  --top-n 5
+```
+
+**3. Запуск полного пайплайна (обработка + аналитика)**
+```bash
+python -m main --task all \
+  --players ../../data/lab4/players.csv \
+  --salaries ../../data/lab4/salaries_1985to2018.csv \
+  --seasons-stats ../../data/lab4/Seasons_Stats.csv \
+  --processed-path ../../data/lab4/processed.parquet \
+  --top-n 5
+```
+
+### Запуск через Docker Compose
+
+**1. Поднять Spark кластер**
+```bash
+docker compose up -d spark-master spark-worker
+```
+
+**2. Обработать данные (Linux/Mac)**
+```bash
+docker compose run --rm client spark-submit \
+  --master spark://spark-master:7077 --deploy-mode client \
+  src/lab4/main.py --task process \
+  --players /app/data/lab4/players.csv \
+  --salaries /app/data/lab4/salaries_1985to2018.csv \
+  --seasons-stats /app/data/lab4/Seasons_Stats.csv \
+  --processed-path /app/data/lab4/processed.parquet
+```
+
+**2. Обработать данные (Windows PowerShell)**
+```powershell
+docker compose run --rm client spark-submit --master spark://spark-master:7077 --deploy-mode client src/lab4/main.py --task process --players /app/data/lab4/players.csv --salaries /app/data/lab4/salaries_1985to2018.csv --seasons-stats /app/data/lab4/Seasons_Stats.csv --processed-path /app/data/lab4/processed.parquet
+```
+
+**3. Запустить аналитику (Linux/Mac)**
+```bash
+docker compose run --rm client spark-submit \
+  --master spark://spark-master:7077 --deploy-mode client \
+  src/lab4/main.py --task analytics \
+  --processed-path /app/data/lab4/processed.parquet \
+  --top-n 5
+```
+
+**3. Запустить аналитику (Windows PowerShell)**
+```powershell
+docker compose run --rm client spark-submit --master spark://spark-master:7077 --deploy-mode client src/lab4/main.py --task analytics --processed-path /app/data/lab4/processed.parquet --top-n 5
+```
+
+**4. Запустить полный пайплайн (Linux/Mac)**
+```bash
+docker compose run --rm client spark-submit \
+  --master spark://spark-master:7077 --deploy-mode client \
+  src/lab4/main.py --task all \
+  --players /app/data/lab4/players.csv \
+  --salaries /app/data/lab4/salaries_1985to2018.csv \
+  --seasons-stats /app/data/lab4/Seasons_Stats.csv \
+  --processed-path /app/data/lab4/processed.parquet \
+  --top-n 5
+```
+
+**4. Запустить полный пайплайн (Windows PowerShell)**
+```powershell
+docker compose run --rm client spark-submit --master spark://spark-master:7077 --deploy-mode client src/lab4/main.py --task all --players /app/data/lab4/players.csv --salaries /app/data/lab4/salaries_1985to2018.csv --seasons-stats /app/data/lab4/Seasons_Stats.csv --processed-path /app/data/lab4/processed.parquet --top-n 5
+```
+
+**5. Остановить кластер**
+```bash
+docker compose down
+```
+
+### Результаты
+После выполнения обработки данные сохраняются в партиционированный Parquet:
+- `data/lab4/processed.parquet/season_year=1985/` — данные за нужный год для всех доступных сезонов
+
+Результаты аналитики выводятся в консоль в виде таблицы с топ-5 игроками за каждый сезон.
+
+---
+
 ## Общая структура проекта
 ```
 .
@@ -227,18 +360,24 @@ docker compose down
 │   ├── lab1/                  # Lab 1: Fibonacci
 │   │   ├── fibonacci.py       # Алгоритм fast doubling
 │   └   └── main.py            # CLI для Lab 1
-│   └── lab2/                  # Lab 2: E-Commerce Analytics
+│   ├── lab2/                  # Lab 2: E-Commerce Analytics
 │   │   ├── data_loader.py     # Загрузка и обработка данных
 │   │   ├── EDA.py             # Exploratory Data Analysis
 │   │   ├── analytics.py       # Бизнес-аналитика
 │   │   └── main.py            # CLI для Lab 2
-│   └── lab3/                  # Lab 2: E-Commerce Analytics
+│   ├── lab3/                  # Lab 3: Term Frequency Analysis
 │   │   ├── tf.py              # Подсчёт частоты встречаемых слов
 │   │   └── main.py            # CLI для Lab 3
+│   └── lab4/                  # Lab 4: NBA Player Efficiency Analytics
+│       ├── data_loader.py     # Загрузка CSV датасетов
+│       ├── processor.py       # Расчёт эффективности и cost/efficiency
+│       ├── analytics.py       # Поиск топ-5 игроков
+│       └── main.py            # CLI для Lab 4
 ├── tests/
 │   ├── lab1/                  # Тесты Lab 1
 │   ├── lab2/                  # Тесты Lab 2
-│   └── lab3/                  # Тесты Lab 3
+│   ├── lab3/                  # Тесты Lab 3
+│   └── lab4/                  # Тесты Lab 4
 ├── docker-compose.yml         # Spark кластер (master + worker + client)
 ├── pyproject.toml             # Зависимости проекта
 └── README.md                  # Документация
@@ -277,5 +416,7 @@ export KAGGLE_KEY="your-api-key"
 ## Примечания
 - Lab 1: Fast doubling алгоритм O(log n) для вычисления чисел Фибоначчи
 - Lab 2: Распределённая обработка данных с PySpark (оптимизация для больших объёмов)
+- Lab 3: Анализ частоты встречаемых слов (Term Frequency) с использованием PySpark
+- Lab 4: Анализ эффективности игроков NBA
 - Все вычисления выполняются в client mode
 - Результаты сохраняются в Parquet
