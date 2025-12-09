@@ -1,0 +1,22 @@
+services:
+  spark-iceberg:
+    image: apache/spark:3.5.3-python3
+    container_name: spark-iceberg
+    working_dir: /app
+    volumes:
+      - .:/app
+      - ./data/lab5/warehouse:/app/warehouse
+    environment:
+      - SPARK_DRIVER_MEMORY=2G
+      - SPARK_EXECUTOR_MEMORY=2G
+      - PYTHONPATH=/app
+    entrypoint: ["/bin/bash", "/app/src/lab5/docker-entrypoint.sh"]
+    deploy:
+      resources:
+        limits:
+          cpus: '2.00'
+          memory: 3G
+        reservations:
+          cpus: '1.00'
+          memory: 2G
+
